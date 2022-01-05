@@ -30,9 +30,7 @@ def create_post(request: schemas.Blog, db: Session = Depends(get_db)):
 
 
 # DELETE a blog
-
-
-@app.delete('/blog/{id}',status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def destroy(id, db: Session = Depends(get_db)):
     db.query(models.Blog).filter(models.Blog.id ==
                                  id).delete(synchronize_session=False)
@@ -41,6 +39,13 @@ def destroy(id, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+# update Blog
+@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
+    db.query(models.Blog).filter(models.Blog.id == id).update(
+        {"title": request.title, "body": request.body})
+    db.commit()
+    return 'updated'
 
 
 # get all blog posts from db
