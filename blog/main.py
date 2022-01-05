@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-#from fastapi.responses import JSONResponse
+# from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from . import schemas, models
@@ -42,26 +42,29 @@ def destroy(id, db: Session = Depends(get_db)):
 # update Blog
 @app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
 def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
-    db.query(models.Blog).filter(models.Blog.id == id).update(
-        {"title": request.title, "body": request.body})
+    blog = db.query(models.Blog).filter(models.Blog.id == id)
+    if not blog.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Blog of id { id } does not exist")
+    blog.update({"title": request.title, "body": request.body})
     db.commit()
     return 'updated'
 
 
 # get all blog posts from db
-@app.get('/blog')
+@ app.get('/blog')
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 
-@app.get('/blog/{id}', status_code=200)
+@ app.get('/blog/{id}', status_code=200)
 def show(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     # ERROR 404 (OBJECT DOES NOT EXIST)
     if not blog:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Blog with the id {id} does not exist')
-        #response.status_code = status.HTTP_404_NOT_FOUND
+        # response.status_code = status.HTTP_404_NOT_FOUND
         # return {'detail': f'Blog with the id {id} does not exist'}
     return blog
