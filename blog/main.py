@@ -1,13 +1,19 @@
 from typing import List
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-# from fastapi.responses import JSONResponse
+from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from . import schemas, models
 from .database import SessionLocal, engine
+
+
 app = FastAPI()
 
 models.Base.metadata.create_all(engine)
+
+
+# password hashing context
+pwd_cxt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_db():
@@ -79,7 +85,9 @@ def show(id, response: Response, db: Session = Depends(get_db)):
 # CREATE USER
 @app.post('/user')
 def create_user(request: schemas.User, db: Session = Depends(get_db)):
-    new_user = models.User(name=request.name,email=request.email, password=request.password)
+    hashedPassword = pwd_cxt.hash(request.password)
+    new_user = models.User(
+        name=request.name, email=request.email, password=hashedPassword)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
