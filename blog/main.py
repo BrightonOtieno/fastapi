@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI, Depends, status, Response, HTTPException
 # from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -57,13 +58,13 @@ def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
 
 
 # get all blog posts from db
-@ app.get('/blog')
+@ app.get('/blog', response_model=List[schemas.Blog])
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 
-@ app.get('/blog/{id}', status_code=200)
+@ app.get('/blog/{id}', response_model=schemas.Blog, status_code=200)
 def show(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     # ERROR 404 (OBJECT DOES NOT EXIST)
