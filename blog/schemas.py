@@ -1,3 +1,4 @@
+from blog.database import Base
 from pydantic import BaseModel
 
 
@@ -10,6 +11,17 @@ class Blog(BaseModel):
 
 
 class User(BaseModel):
-    name:str
-    email:str
-    password:str
+    name: str
+    email: str
+    password: str
+
+    class Config():
+        orm_mode = True
+
+
+class ShowUser(BaseModel):
+    name: str
+    email: str
+
+    class Config():
+        orm_mode = True
