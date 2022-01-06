@@ -25,7 +25,7 @@ def get_db():
 
 
 # create post
-@app.post('/blog', status_code=status.HTTP_201_CREATED)
+@app.post('/blog', status_code=status.HTTP_201_CREATED,tags=['blogs'])
 def create_post(request: schemas.Blog, db: Session = Depends(get_db)):
     # add the post data into db as a new blog post
     new_blog = models.Blog(title=request.title, body=request.body)
@@ -37,7 +37,7 @@ def create_post(request: schemas.Blog, db: Session = Depends(get_db)):
 
 
 # DELETE a blog
-@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT,tags=['blogs'])
 def destroy(id, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id ==
                                         id)
@@ -52,7 +52,7 @@ def destroy(id, db: Session = Depends(get_db)):
 
 
 # update Blog
-@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED,tags=['blogs'])
 def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
@@ -64,13 +64,13 @@ def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
 
 
 # get all blog posts from db
-@ app.get('/blog', response_model=List[schemas.Blog])
+@ app.get('/blog', response_model=List[schemas.Blog],tags=['blogs'])
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 
-@ app.get('/blog/{id}', response_model=schemas.Blog, status_code=200)
+@ app.get('/blog/{id}', response_model=schemas.Blog, status_code=200,tags=['blogs'])
 def show(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     # ERROR 404 (OBJECT DOES NOT EXIST)
@@ -83,7 +83,7 @@ def show(id, response: Response, db: Session = Depends(get_db)):
 
 
 # CREATE USER
-@app.post('/user', response_model=schemas.ShowUser)
+@app.post('/user', response_model=schemas.ShowUser,tags=['users'])
 def create_user(request: schemas.User, db: Session = Depends(get_db)):
     hashedPassword = pwd_cxt.hash(request.password)
     new_user = models.User(
@@ -95,7 +95,7 @@ def create_user(request: schemas.User, db: Session = Depends(get_db)):
 
 
 # GET User
-@app.get('/user/{id}', response_model=schemas.ShowUser)
+@app.get('/user/{id}', response_model=schemas.ShowUser,tags=['users'])
 def get_user(id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
