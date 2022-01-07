@@ -2,13 +2,15 @@ from .. import schemas, models
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from fastapi import HTTPException
+from ..hashing  import Hash
 
 # password hashing context
-pwd_cxt = CryptContext(schemes=["bcrypt"], deprecated="auto")
+#pwd_cxt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def create_user(request: schemas.User, db: Session):
-    hashedPassword = pwd_cxt.hash(request.password)
+    #hashedPassword = pwd_cxt.hash(request.password)
+    hashedPassword = Hash.bcrypt(request.password)
     new_user = models.User(
         name=request.name, email=request.email, password=hashedPassword)
     db.add(new_user)
