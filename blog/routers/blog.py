@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, status, Response, HTTPException
 from typing import List
 from .. import schemas, database, models
 from sqlalchemy.orm import Session
-
+from ..repository import blog
 
 router = APIRouter(
-    prefix = "/blog",
+    prefix="/blog",
     tags=['blogs']
 )
 
@@ -16,57 +16,26 @@ get_db = database.get_db
 
 @router.get('/', response_model=List[schemas.ShowBlog])
 def all(db: Session = Depends(get_db)):
-    blogs = db.query(models.Blog).all()
-    return blogs
-
-# create post
+    return blog.get_all(db)
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 def create_post(request: schemas.Blog, db: Session = Depends(get_db)):
-    # add the post data into db as a new blog post
-    new_blog = models.Blog(title=request.title, body=request.body, user_id=1)
-    db.add(new_blog)
-    db.commit()
-    db.refresh(new_blog)
-    # refresh it so the we can easily return it as feedback
-    return new_blog
+    return blog.create(request, db)
 
 
 # DELETE a blog
-@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT, responses={204: {"model": None}})
 def destroy(id, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id ==
-                                        id)
-    if not blog.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Blog of id { id } does not exist")
-
-    blog.delete(synchronize_session=False)
-    db.commit()
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return blog.destroy(id, db)
 
 
 # update Blog
 @router.put('/{id}', status_code=status.HTTP_202_ACCEPTED)
 def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id)
-    if not blog.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Blog of id { id } does not exist")
-    blog.update({"title": request.title, "body": request.body})
-    db.commit()
-    return 'updated'
+    return blog.update(id, request, db)
 
 
 @ router.get('/{id}', response_model=schemas.ShowBlog, status_code=200)
-def show(id, response: Response, db: Session = Depends(get_db)):
-    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
-    # ERROR 404 (OBJECT DOES NOT EXIST)
-    if not blog:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'Blog with the id {id} does not exist')
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {'detail': f'Blog with the id {id} does not exist'}
-    return blog
+def show(id:int, response: Response, db: Session = Depends(get_db)):
+    return blog.show(id, db)
