@@ -6,6 +6,7 @@ from .. import schemas
 from ..database import get_db
 from passlib.context import CryptContext
 from ..hashing import Hash
+from .. import token
 
 router = APIRouter(
     tags=['Authentication'],
@@ -26,4 +27,7 @@ def login(request:schemas.Login, db:Session = Depends(get_db)):
         detail = f"Invalid Credentials, check password & email"
         )
     #TODO: Generate JWT token & return it
-    return user
+    access_token = token.create_access_token(
+        data={"sub": user.email}
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
