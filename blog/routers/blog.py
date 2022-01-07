@@ -3,6 +3,7 @@ from typing import List
 from .. import schemas, database, models
 from sqlalchemy.orm import Session
 from ..repository import blog
+from .. oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/blog",
@@ -15,27 +16,27 @@ get_db = database.get_db
 
 
 @router.get('/', response_model=List[schemas.ShowBlog])
-def all(db: Session = Depends(get_db)):
+def all(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return blog.get_all(db)
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
-def create_post(request: schemas.Blog, db: Session = Depends(get_db)):
+def create_post(request: schemas.Blog, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return blog.create(request, db)
 
 
 # DELETE a blog
 @router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT, responses={204: {"model": None}})
-def destroy(id, db: Session = Depends(get_db)):
+def destroy(id, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return blog.destroy(id, db)
 
 
 # update Blog
 @router.put('/{id}', status_code=status.HTTP_202_ACCEPTED)
-def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
+def update(id, request: schemas.Blog, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return blog.update(id, request, db)
 
 
 @ router.get('/{id}', response_model=schemas.ShowBlog, status_code=200)
-def show(id:int, response: Response, db: Session = Depends(get_db)):
+def show(id: int, response: Response, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return blog.show(id, db)
